@@ -51,8 +51,8 @@ notesRouter.get('/', async (c) => {
     ];
   }
 
-  const notes = await Note.find(query).sort({ updatedAt: -1 });
-  return c.json(notes);
+const notes = await Note.find(query).sort({ updatedAt: -1 }) || [];
+return c.json({ notes });
 });
 
 notesRouter.get('/:id', async (c) => {
