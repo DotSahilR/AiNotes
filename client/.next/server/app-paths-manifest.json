@@ -1,0 +1,5 @@
+{
+  "/notes/page": "app/notes/page.js",
+  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
+  "/notes/[id]/page": "app/notes/[id]/page.js"
+}
