@@ -74,6 +74,8 @@ export default function NoteEditor({ noteId }: NoteEditorProps): JSX.Element {
   });
 
   const watchedTitle = watch('title');
+  const safeTags = Array.isArray(note?.tags) ? note.tags : [];
+  const safeAiOutputs = Array.isArray(note?.aiOutputs) ? note.aiOutputs : [];
 
   const editor = useEditor({
     extensions: [StarterKit, Placeholder.configure({ placeholder: 'Start writing your note...' })],
@@ -143,7 +145,11 @@ export default function NoteEditor({ noteId }: NoteEditorProps): JSX.Element {
       output
     });
 
-    setNote(response.data);
+    setNote({
+      ...response.data,
+      tags: Array.isArray(response.data.tags) ? response.data.tags : [],
+      aiOutputs: Array.isArray(response.data.aiOutputs) ? response.data.aiOutputs : []
+    });
   };
 
   const handleRunFeature = async (): Promise<void> => {
@@ -217,9 +223,9 @@ export default function NoteEditor({ noteId }: NoteEditorProps): JSX.Element {
           </div>
         </div>
 
-        {note?.tags?.length ? (
+        {safeTags.length ? (
           <div className="flex flex-wrap gap-2">
-            {note.tags.map((tag) => (
+            {safeTags.map((tag) => (
               <Badge key={tag} variant="secondary" className="lowercase">
                 {tag}
               </Badge>
@@ -304,9 +310,9 @@ export default function NoteEditor({ noteId }: NoteEditorProps): JSX.Element {
           <CardContent className="space-y-3 p-4">
             <p className="text-sm font-medium">AI History</p>
 
-            {note?.aiOutputs?.length ? (
+            {safeAiOutputs.length ? (
               <div className="space-y-3">
-                {note.aiOutputs.map((item) => (
+                {safeAiOutputs.map((item) => (
                   <Card key={item._id}>
                     <CardContent className="space-y-2 p-4">
                       <div className="flex items-center justify-between gap-2">

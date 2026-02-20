@@ -21,6 +21,12 @@ interface UseNotesReturn {
   deleteNote: (id: string) => Promise<void>;
 }
 
+const normalizeNote = (input: Note): Note => ({
+  ...input,
+  tags: Array.isArray(input.tags) ? input.tags : [],
+  aiOutputs: Array.isArray(input.aiOutputs) ? input.aiOutputs : []
+});
+
 export function useNotes(): UseNotesReturn {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -28,8 +34,9 @@ export function useNotes(): UseNotesReturn {
   const fetchNotes = useCallback(async (search?: string): Promise<void> => {
     setLoading(true);
     try {
-      const response = await api.get<Note[]>('/notes', { params: { search: search || '' } });
-      setNotes(response.data);
+      const response = await api.get<Note[] | { message?: string }>('/notes', { params: { search: search || '' } });
+      const payload = response.data;
+      setNotes(Array.isArray(payload) ? payload.map((note) => normalizeNote(note as Note)) : []);
     } catch (err) {
       const error = err as AxiosError<ApiError>;
       toast.error(error.response?.data?.message || 'Failed to load notes');
@@ -41,7 +48,7 @@ export function useNotes(): UseNotesReturn {
   const getNote = useCallback(async (id: string): Promise<Note | null> => {
     try {
       const response = await api.get<Note>(`/notes/${id}`);
-      return response.data;
+      return normalizeNote(response.data);
     } catch (err) {
       const error = err as AxiosError<ApiError>;
       toast.error(error.response?.data?.message || 'Failed to load note');
@@ -53,7 +60,7 @@ export function useNotes(): UseNotesReturn {
     try {
       const response = await api.post<Note>('/notes', { title: 'Untitled', content: '' });
       toast.success('Note created');
-      return response.data;
+      return normalizeNote(response.data);
     } catch (err) {
       const error = err as AxiosError<ApiError>;
       toast.error(error.response?.data?.message || 'Failed to create note');
@@ -64,7 +71,7 @@ export function useNotes(): UseNotesReturn {
   const updateNote = useCallback(async (id: string, payload: Partial<Note>): Promise<Note | null> => {
     try {
       const response = await api.put<Note>(`/notes/${id}`, payload);
-      return response.data;
+      return normalizeNote(response.data);
     } catch (err) {
       const error = err as AxiosError<ApiError>;
       toast.error(error.response?.data?.message || 'Failed to update note');

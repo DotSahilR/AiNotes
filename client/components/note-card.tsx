@@ -19,6 +19,7 @@ const stripHtml = (html: string): string => html.replace(/<[^>]+>/g, '').trim();
 export default function NoteCard({ note, onDelete }: NoteCardProps): JSX.Element {
   const router = useRouter();
   const preview = stripHtml(note.content);
+  const safeTags = Array.isArray(note.tags) ? note.tags : [];
 
   return (
     <Card className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => router.push(`/notes/${note._id}`)}>
@@ -31,7 +32,7 @@ export default function NoteCard({ note, onDelete }: NoteCardProps): JSX.Element
         <p className="line-clamp-3 text-sm text-muted-foreground">{preview.length > 120 ? `${preview.slice(0, 120)}...` : preview || 'Empty note'}</p>
 
         <div className="flex flex-wrap gap-1">
-          {note.tags.slice(0, 3).map((tag) => (
+          {safeTags.slice(0, 3).map((tag) => (
             <Badge key={tag} variant="secondary" className="lowercase">
               {tag}
             </Badge>
