@@ -38,6 +38,12 @@ const notesRouter = new Hono<{ Variables: AuthVariables }>();
 
 notesRouter.use('*', authMiddleware);
 
+const normalizeNote = (note: Record<string, unknown>): Record<string, unknown> => ({
+  ...note,
+  tags: Array.isArray(note.tags) ? note.tags : [],
+  aiOutputs: Array.isArray(note.aiOutputs) ? note.aiOutputs : []
+});
+
 notesRouter.get('/', async (c) => {
   const userId = c.get('userId');
   const search = c.req.query('search')?.trim();
@@ -51,8 +57,8 @@ notesRouter.get('/', async (c) => {
     ];
   }
 
-const notes = await Note.find(query).sort({ updatedAt: -1 }) || [];
-return c.json({ notes });
+  const notes = await Note.find(query).sort({ updatedAt: -1 });
+  return c.json(notes.map((note) => normalizeNote(note.toObject())));
 });
 
 notesRouter.get('/:id', async (c) => {
@@ -64,7 +70,7 @@ notesRouter.get('/:id', async (c) => {
     return c.json({ message: 'Note not found' }, 404);
   }
 
-  return c.json(note);
+  return c.json(normalizeNote(note.toObject()));
 });
 
 notesRouter.post('/', zValidator('json', createSchema), async (c) => {
@@ -77,7 +83,7 @@ notesRouter.post('/', zValidator('json', createSchema), async (c) => {
     content: body.content || ''
   });
 
-  return c.json(note, 201);
+  return c.json(normalizeNote(note.toObject()), 201);
 });
 
 notesRouter.put('/:id', zValidator('json', updateSchema), async (c) => {
@@ -91,7 +97,7 @@ notesRouter.put('/:id', zValidator('json', updateSchema), async (c) => {
     return c.json({ message: 'Note not found' }, 404);
   }
 
-  return c.json(note);
+  return c.json(normalizeNote(note.toObject()));
 });
 
 notesRouter.post('/:id/ai-output', zValidator('json', appendAiOutputSchema), async (c) => {
@@ -112,7 +118,7 @@ notesRouter.post('/:id/ai-output', zValidator('json', appendAiOutputSchema), asy
   });
 
   await note.save();
-  return c.json(note, 201);
+  return c.json(normalizeNote(note.toObject()), 201);
 });
 
 notesRouter.delete('/:id', async (c) => {
