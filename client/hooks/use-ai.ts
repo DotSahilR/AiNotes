@@ -89,8 +89,11 @@ export function useAI(): UseAIReturn {
     setTagsLoading(true);
     try {
       const response = await api.post<{ tags: string[] }>('/ai/tags', { title, content });
+      const tags = Array.isArray(response.data?.tags)
+        ? response.data.tags.filter((tag): tag is string => typeof tag === 'string')
+        : [];
       toast.success('Tags generated');
-      return response.data.tags;
+      return tags;
     } catch (err) {
       const error = err as AxiosError<ApiError>;
       toast.error(error.response?.data?.message || 'Failed to generate tags');

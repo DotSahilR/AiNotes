@@ -15,6 +15,7 @@ import { useNotes } from '@/hooks/use-notes';
 export default function NotesPage(): JSX.Element {
   const router = useRouter();
   const { notes, loading, fetchNotes, createNote, deleteNote } = useNotes();
+  const safeNotes = Array.isArray(notes) ? notes : [];
 
   useEffect(() => {
     void fetchNotes();
@@ -54,14 +55,14 @@ export default function NotesPage(): JSX.Element {
               </Card>
             ))}
           </div>
-        ) : notes.length === 0 ? (
+        ) : safeNotes.length === 0 ? (
           <div className="flex min-h-80 flex-col items-center justify-center rounded-lg border border-dashed">
             <FileX className="mb-2 h-8 w-8 text-muted-foreground" />
             <p className="font-medium">No notes found</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {notes.map((note) => (
+            {safeNotes.map((note) => (
               <NoteCard key={note._id} note={note} onDelete={deleteNote} />
             ))}
           </div>
